@@ -1,5 +1,9 @@
-# PDF Chatter
+# PDF chatting app :
 PDF Chatter is a robust AI-powered tool designed to interact with PDF documents. By leveraging state-of-the-art Large Language Models (LLMs), this project enables users to query PDFs in natural language, extract insights, and retrieve relevant information seamlessly.
+
+<img width="869" alt="Screenshot 2024-11-27 at 6 32 12 PM" src="https://github.com/user-attachments/assets/fdea58f2-7fff-49e3-883c-5aed1106fd38">
+
+* Shown above is a snapshot of the application.
 
 ## Key Features
 Natural Language Querying: Ask questions about your PDFs and get accurate, context-aware answers.
