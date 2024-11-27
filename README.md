@@ -10,8 +10,8 @@ State-of-the-Art LLM: Built on the powerful Llama 3.1 model, ensuring nuanced un
 * Clone the repository:
 ```
 bash
-git clone https://github.com/your-repo/pdf-chatter.git  
-cd pdf-chatter
+git@github.com:sayakmisra/PDF_chatting_app.git 
+cd PDF_chatting_app
  ```
 ### 2. Set up the environment:
 
