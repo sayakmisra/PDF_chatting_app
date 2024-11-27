@@ -23,7 +23,7 @@ embeddings=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
 
 ## set up Streamlit 
-st.title("Ask your spark query :")
+st.title("Ask your query :")
 st.write("Upload Pdf's and chat with their content")
 
 ## Input the Groq API Key
