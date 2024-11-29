@@ -1,4 +1,4 @@
-## RAG Q&A Conversation With PDF Including Chat History
+# RAG (Retrieval Augmented Generation) Q&A Conversation System with PDF Support and Chat History
 import streamlit as st
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -14,55 +14,55 @@ from langchain_community.document_loaders import PyPDFLoader
 import os
 import chromadb.api
 
-
+# Load environment variables
 from dotenv import load_dotenv
 load_dotenv()
 
+# Set up HuggingFace token and embeddings model
 os.environ['HF_TOKEN']=os.getenv("HF_TOKEN")
 embeddings=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-
-## set up Streamlit 
+# Configure Streamlit interface
 st.title("Ask your query :")
 st.write("Upload Pdf's and chat with their content")
 
-## Input the Groq API Key
-# api_key=st.text_input("Enter your Groq API key:",type="password")
-
-## Check if groq api key is provided
+# Initialize Groq LLM if API key is provided
 if True:
     llm=ChatGroq(groq_api_key=os.getenv("GROQ_KEY"),model_name="Gemma2-9b-It")
 
-    ## chat interface
-
+    # Set up chat session management
     session_id=st.text_input("Session ID",value="default_session")
-    ## statefully manage chat history
-
+    
+    # Initialize session state for storing chat history
     if 'store' not in st.session_state:
         st.session_state.store={}
 
+    # PDF file upload handling
     uploaded_files=st.file_uploader("Choose A PDf file",type="pdf",accept_multiple_files=True)
-    ## Process uploaded  PDF's
+    
+    # Process uploaded PDF files
     if uploaded_files:
         documents=[]
         for uploaded_file in uploaded_files:
+            # Save uploaded file temporarily
             temppdf=f"./temp.pdf"
             with open(temppdf,"wb") as file:
                 file.write(uploaded_file.getvalue())
                 file_name=uploaded_file.name
 
+            # Load PDF content
             loader=PyPDFLoader(temppdf)
             docs=loader.load()
             documents.extend(docs)
 
-    # Split and create embeddings for the documents
-
+        # Prepare document embeddings and vector store
         chromadb.api.client.SharedSystemClient.clear_system_cache()
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         splits = text_splitter.split_documents(documents)
         vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
         retriever = vectorstore.as_retriever()    
 
+        # Configure context-aware question processing
         contextualize_q_system_prompt=(
             "Given a chat history and the latest user question"
             "which might reference context in the chat history, "
@@ -78,11 +78,10 @@ if True:
                 ]
             )
         
+        # Create history-aware retriever
         history_aware_retriever=create_history_aware_retriever(llm,retriever,contextualize_q_prompt)
 
-        ## Answer question
-
-        # Answer question
+        # Configure answer generation system
         system_prompt = (
                 "You are an assistant for question-answering tasks. "
                 "Use the following pieces of retrieved context to answer "
@@ -100,14 +99,17 @@ if True:
                 ]
             )
         
+        # Create question-answering chain
         question_answer_chain=create_stuff_documents_chain(llm,qa_prompt)
         rag_chain=create_retrieval_chain(history_aware_retriever,question_answer_chain)
 
+        # Function to manage chat history for each session
         def get_session_history(session:str)->BaseChatMessageHistory:
             if session_id not in st.session_state.store:
                 st.session_state.store[session_id]=ChatMessageHistory()
             return st.session_state.store[session_id]
         
+        # Create conversational RAG chain with message history
         conversational_rag_chain=RunnableWithMessageHistory(
             rag_chain,get_session_history,
             input_messages_key="input",
@@ -115,6 +117,7 @@ if True:
             output_messages_key="answer"
         )
 
+        # Handle user input and generate responses
         user_input = st.text_input("Your question:")
         if user_input:
             session_history=get_session_history(session_id)
@@ -124,9 +127,7 @@ if True:
                     "configurable": {"session_id":session_id}
                 },  # constructs a key "abc123" in `store`.
             )
-            # st.write(st.session_state.store)
             st.write("Assistant:", response['answer'])
-            # st.write("Chat History:", session_history.messages)
 else:
     st.warning("Please enter the GRoq API Key")
 
